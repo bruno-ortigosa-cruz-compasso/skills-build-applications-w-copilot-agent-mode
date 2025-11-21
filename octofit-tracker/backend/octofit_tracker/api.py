@@ -1,41 +1,14 @@
 from rest_framework import serializers
 from djongo import models
+from octofit_tracker.models import User
 
-class User(models.Model):
-    email = models.EmailField(unique=True)
-    name = models.CharField(max_length=100)
-    team = models.CharField(max_length=50)
-    class Meta:
-        db_table = 'users'
-        app_label = 'octofit_tracker'
+from octofit_tracker.models import Team
 
-class Team(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    class Meta:
-        db_table = 'teams'
-        app_label = 'octofit_tracker'
+from octofit_tracker.models import Activity
 
-class Activity(models.Model):
-    user_email = models.EmailField()
-    type = models.CharField(max_length=50)
-    duration = models.IntegerField()
-    class Meta:
-        db_table = 'activities'
-        app_label = 'octofit_tracker'
+from octofit_tracker.models import Leaderboard
 
-class Leaderboard(models.Model):
-    team = models.CharField(max_length=50)
-    points = models.IntegerField()
-    class Meta:
-        db_table = 'leaderboard'
-        app_label = 'octofit_tracker'
-
-class Workout(models.Model):
-    name = models.CharField(max_length=100)
-    difficulty = models.CharField(max_length=20)
-    class Meta:
-        db_table = 'workouts'
-        app_label = 'octofit_tracker'
+from octofit_tracker.models import Workout
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
