@@ -7,11 +7,12 @@ class User(AbstractUser):
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
-    members = models.ArrayReferenceField(to=User)
+    member_ids = models.JSONField(default=list)  # Store user IDs as list
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Activity(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.CharField(max_length=100)  # Store User ID as string
+    user_username = models.CharField(max_length=150, default='')  # Cache username for easier display
     type = models.CharField(max_length=50)
     duration = models.IntegerField()  # minutes
     calories = models.IntegerField()
@@ -24,6 +25,7 @@ class Workout(models.Model):
     suggested_for = models.CharField(max_length=100)
 
 class Leaderboard(models.Model):
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    team_id = models.CharField(max_length=100)  # Store Team ID as string
+    team_name = models.CharField(max_length=100, default='')  # Cache team name for easier display
     score = models.IntegerField()
     updated_at = models.DateTimeField(auto_now=True)

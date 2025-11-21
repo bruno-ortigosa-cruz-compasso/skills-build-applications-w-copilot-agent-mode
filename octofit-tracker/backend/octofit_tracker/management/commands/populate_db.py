@@ -1,43 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from djongo import models
-
-# Define models for each collection
-class User(models.Model):
-    email = models.EmailField(unique=True)
-    name = models.CharField(max_length=100)
-    team = models.CharField(max_length=50)
-    class Meta:
-        app_label = 'octofit_tracker'
-        db_table = 'users'
-
-class Team(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    class Meta:
-        app_label = 'octofit_tracker'
-        db_table = 'teams'
-
-class Activity(models.Model):
-    user_email = models.EmailField()
-    type = models.CharField(max_length=50)
-    duration = models.IntegerField()
-    class Meta:
-        app_label = 'octofit_tracker'
-        db_table = 'activities'
-
-class Leaderboard(models.Model):
-    team = models.CharField(max_length=50)
-    points = models.IntegerField()
-    class Meta:
-        app_label = 'octofit_tracker'
-        db_table = 'leaderboard'
-
-class Workout(models.Model):
-    name = models.CharField(max_length=100)
-    difficulty = models.CharField(max_length=20)
-    class Meta:
-        app_label = 'octofit_tracker'
-        db_table = 'workouts'
+from octofit_tracker.models import User, Team, Activity, Leaderboard, Workout
+from datetime import date
 
 class Command(BaseCommand):
     help = 'Populate the octofit_db database with test data'
@@ -50,38 +14,37 @@ class Command(BaseCommand):
         Leaderboard.objects.all().delete()
         Workout.objects.all().delete()
 
-        # Teams
-        marvel = Team.objects.create(name='Marvel')
-        dc = Team.objects.create(name='DC')
-
-        # Users
+        # Users (using Django's User model which requires username)
         users = [
-            User(email='tony@stark.com', name='Tony Stark', team='Marvel'),
-            User(email='steve@rogers.com', name='Steve Rogers', team='Marvel'),
-            User(email='clark@kent.com', name='Clark Kent', team='DC'),
-            User(email='diana@prince.com', name='Diana Prince', team='DC'),
+            User.objects.create_user(username='tonystark', email='tony@stark.com', first_name='Tony', last_name='Stark'),
+            User.objects.create_user(username='steverogers', email='steve@rogers.com', first_name='Steve', last_name='Rogers'),
+            User.objects.create_user(username='clarkkent', email='clark@kent.com', first_name='Clark', last_name='Kent'),
+            User.objects.create_user(username='dianaprince', email='diana@prince.com', first_name='Diana', last_name='Prince'),
         ]
-        User.objects.bulk_create(users)
+
+        # Teams
+        marvel = Team.objects.create(name='Marvel', member_ids=[str(users[0].pk), str(users[1].pk)])
+        dc = Team.objects.create(name='DC', member_ids=[str(users[2].pk), str(users[3].pk)])
 
         # Activities
         activities = [
-            Activity(user_email='tony@stark.com', type='Running', duration=30),
-            Activity(user_email='steve@rogers.com', type='Cycling', duration=45),
-            Activity(user_email='clark@kent.com', type='Swimming', duration=60),
-            Activity(user_email='diana@prince.com', type='Yoga', duration=50),
+            Activity(user_id=str(users[0].pk), user_username=users[0].username, type='Running', duration=30, calories=300, date=date.today()),
+            Activity(user_id=str(users[1].pk), user_username=users[1].username, type='Cycling', duration=45, calories=450, date=date.today()),
+            Activity(user_id=str(users[2].pk), user_username=users[2].username, type='Swimming', duration=60, calories=600, date=date.today()),
+            Activity(user_id=str(users[3].pk), user_username=users[3].username, type='Yoga', duration=50, calories=250, date=date.today()),
         ]
         Activity.objects.bulk_create(activities)
 
         # Leaderboard
-        Leaderboard.objects.create(team='Marvel', points=75)
-        Leaderboard.objects.create(team='DC', points=110)
+        Leaderboard.objects.create(team_id=str(marvel.pk), team_name=marvel.name, score=750)
+        Leaderboard.objects.create(team_id=str(dc.pk), team_name=dc.name, score=850)
 
         # Workouts
         workouts = [
-            Workout(name='Iron Man HIIT', difficulty='Hard'),
-            Workout(name='Superman Strength', difficulty='Hard'),
-            Workout(name='Captain America Cardio', difficulty='Medium'),
-            Workout(name='Wonder Woman Flex', difficulty='Medium'),
+            Workout(name='Iron Man HIIT', description='High-intensity interval training', difficulty='Hard', suggested_for='Advanced athletes'),
+            Workout(name='Superman Strength', description='Full body strength training', difficulty='Hard', suggested_for='Advanced athletes'),
+            Workout(name='Captain America Cardio', description='Cardiovascular endurance training', difficulty='Medium', suggested_for='Intermediate'),
+            Workout(name='Wonder Woman Flex', description='Flexibility and balance', difficulty='Medium', suggested_for='All levels'),
         ]
         Workout.objects.bulk_create(workouts)
 
